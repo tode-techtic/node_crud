@@ -1,5 +1,6 @@
 const Util = require("../Utils");
 const util = new Util();
+const fs = require("fs");
 const data = [
   { id: 1, name: "yash", age: 23 },
   { id: 2, name: "mohil", age: 23 },
@@ -7,6 +8,22 @@ const data = [
 ];
 
 class UserController {
+  static async searchUser(req, res) {
+    try {
+      const filters = req.query;
+      const filteredUsers = data.filter((user) => {
+        let isValid = true;
+        for (key in filters) {
+          isValid = isValid && user[key] == filters[key];
+        }
+        return isValid;
+      });
+      res.send(filteredUsers);
+    } catch (error) {
+      util.setError(500, error.message);
+    }
+  }
+
   static async insertUser(req, res) {
     try {
       if (!(req.body.name && req.body.age)) {
@@ -91,7 +108,31 @@ class UserController {
 
   static async userList(req, res) {
     try {
+      let meta = JSON.stringify(data);
+      fs.writeFile("example.txt", meta, "utf8", (err) => {
+        if (err) {
+          console.error("Error writing file:", err);
+          return;
+        }
+        console.log("File created and written successfully.");
+      });
+
       util.setSuccess(200, "Ok", data);
+    } catch (error) {
+      util.setError(500, error.message);
+    }
+    return util.send(res);
+  }
+
+  static async readFileData(req, res) {
+    try {
+      fs.readFile("example.txt", "utf8", (err, data) => {
+        if (err) {
+          console.error("Error reading file:", err);
+          return;
+        }
+        util.setSuccess(200, "Ok", data);
+      });
     } catch (error) {
       util.setError(500, error.message);
     }
